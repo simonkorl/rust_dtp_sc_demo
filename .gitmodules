@@ -1,0 +1,4 @@
+[submodule "deps/dtp"]
+	path = deps/dtp
+	url = git@github.com:simonkorl/AItransDTP.git
+	branch = mc-dev
