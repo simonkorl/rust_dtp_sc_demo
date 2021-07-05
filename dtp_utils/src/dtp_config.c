@@ -1,6 +1,7 @@
 #include "../include/dtp_config.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <ctype.h>
 #include <string.h>
 #include <sys/time.h>
@@ -14,7 +15,7 @@ __uint64_t getCurrentUsec()  //usec
 
 // return: config array, you have to release it
 // number: return the number of parsed dtp_config (MAX=10).
-struct dtp_config* parse_dtp_config(const char *filename, int *number)
+struct dtp_config* parse_dtp_config(const char *filename,int *number)
 {
     FILE *fd = NULL;
 
@@ -27,10 +28,12 @@ struct dtp_config* parse_dtp_config(const char *filename, int *number)
     static int max_cfgs_len = 10000;
     dtp_config *cfgs = malloc(sizeof(*cfgs) * max_cfgs_len);
 
-
     fd = fopen(filename, "r");
     if (fd == NULL) {
-        printf("fail to open config file.");
+        printf("fail to open config file in C code.\n");
+        char buf[100];
+        getcwd(buf, 100);
+        printf("path: %s / %s \n", buf, filename);
         *number = 0;
         return NULL;
     }
@@ -45,6 +48,6 @@ struct dtp_config* parse_dtp_config(const char *filename, int *number)
     }
     *number = cfgs_len;
     fclose(fd);
-    
+
     return cfgs;
 }

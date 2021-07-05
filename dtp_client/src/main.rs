@@ -284,13 +284,13 @@ fn main() {
         }
 
         if conn.is_closed() {
+            debug!("connection is closed");
             let s = format!("connection closed, {:?}, total_bytes={}, complete_bytes={}, good_bytes={}, total_time={}\n", 
                     conn.stats(), 
                     recv_bytes,
                     complete_bytes,
                     good_bytes,
                     start_timestamp.elapsed().as_micros());
-            // let s = format!("connection closed\n");
             match file.write_all(s.as_bytes()) {
                 Err(why) => panic!("couldn't write to {}: {}", display, why),
                 _ => (),

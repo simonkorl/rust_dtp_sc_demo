@@ -64,7 +64,7 @@ struct Client {
     next_timeout: Option<Instant>,
 
     dtp_config_offset: usize,
-    
+
     _token: Option<mio::Token>
 }
 
@@ -84,8 +84,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Prepare random data
     let rng = SystemRandom::new();
-    unsafe { 
-        rng.fill(&mut DATA_BUF).unwrap(); 
+    unsafe {
+        rng.fill(&mut DATA_BUF).unwrap();
     }
 
     // load dtp configs
@@ -188,6 +188,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         // get sender timeout
         let sender_timeout = clients.values().filter_map(|(_, c)| c.next_timeout).min();
+        debug!("sender timeout raw: {:?}", sender_timeout);
         let now = Instant::now();
         let sender_timeout = if sender_timeout.is_none() {
             None
@@ -209,9 +210,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         } else {
             let t = std::cmp::min(sender_timeout, conn_timeout);
             if t == sender_timeout {
-                debug!("sender timeout!");
+                debug!("cmp: sender timeout!");
             } else {
-                debug!("conn timeout!!");
+                debug!("cmp: conn timeout!!");
             }
             t
         };
@@ -371,8 +372,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                     hex_dump(&scid)
                 );
 
-                let conn = quiche::accept(&scid, odcid, &mut config).unwrap();
-
+                let mut conn = quiche::accept(&scid, odcid, &mut config).unwrap();
+                conn.set_tail(5); // ! if you enable redundancy without setting the tail, the program may panic in a unreachable branch
                 let client = Client {
                     conn,
                     partial_responses: HashMap::new(),
@@ -453,12 +454,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             //     }
             // }
         }
-        
+
         // Sending blocks
         for (_, client) in clients.values_mut() {
             if client.dtp_config_offset >= cfgs.len() {
                 // Stop sending
-                match client.conn.close(true, quiche::Error::Done as u64, b"send done") {
+                debug!("Stop sending");
+                client.next_timeout = None;
+                match client.conn.close(true, quiche::Error::Done as u32 as u64, b"send done") {
                     Ok(()) => continue,
                     Err(quiche::Error::Done) => continue,
                     Err(err) => panic!("{:?}", err),
@@ -467,6 +470,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 // Send blocks
                 if client.conn.is_established() {
                     if client.next_timeout.is_none() || client.next_timeout <= Some(Instant::now()) {
+                        debug!("Send block {}", client.dtp_config_offset);
                         client.next_timeout = None;
                         for _ in client.dtp_config_offset..cfgs.len() {
                             // Send a block
