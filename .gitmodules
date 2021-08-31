@@ -1,0 +1,4 @@
+[submodule "deps/dtp"]
+	path = deps/dtp
+	url = git@github.com:STAR-Tsinghua/DTP.git
+	branch = main
