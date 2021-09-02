@@ -107,7 +107,7 @@ uint64_t SolutionSelectBlock(Block* blocks, uint64_t block_num, uint64_t next_pa
         your_parameter["rtt_update_time"] = current_time;
         float_parameter["rtt"] = -10000.0;
     }
-        
+
     double Min_weight = 10000000.0;
     int Min_weight_block_id = -1;
 
@@ -171,7 +171,7 @@ uint64_t SolutionSelectBlock(Block* blocks, uint64_t block_num, uint64_t next_pa
         if(Min_weight_block_id != -1){
             your_parameter["last_block_id"] = blocks[Min_weight_block_id].block_id;
             return your_parameter["last_block_id"];
-        }   
+        }
         else {
             return blocks[0].block_id;
         }
@@ -187,7 +187,6 @@ uint64_t SolutionSelectBlock(Block* blocks, uint64_t block_num, uint64_t next_pa
 
 void SolutionCcTrigger(CcInfo *cc_infos, uint64_t cc_num, uint64_t *congestion_window, uint64_t *pacing_rate)
 {
-  cerr << "CC Trigger" << endl;
     /************** START CODE HERE ***************/
     uint64_t cwnd = *congestion_window;
     vector<int> cc_types, rtt_sample;
@@ -225,8 +224,8 @@ void SolutionCcTrigger(CcInfo *cc_infos, uint64_t cc_num, uint64_t *congestion_w
 
         // cout  << "update module at " << current_time << endl;
 
-        clock_t start, finish; 
-        double duration; 
+        clock_t start, finish;
+        double duration;
 
         start = clock();
         // torch::jit::Module module;
@@ -257,14 +256,14 @@ void SolutionCcTrigger(CcInfo *cc_infos, uint64_t cc_num, uint64_t *congestion_w
         //     // cout  << "model input:";
         //     // for(int i = 0;i < 9;i ++)cout << scales_[0][0][i].item().toDouble() << " ";
         //     // cout << endl;
-            
+
         //     inputs.push_back(scales_);
         //     at::Tensor output = module.forward(inputs).toTensor();
-            
+
         //     // cout << "model output:";
         //     // for(int i = 0;i < 2;i ++)cout << output[0][i].item().toDouble() << " ";
         //     // cout << endl;
-            
+
         //     float_parameter["current_rate"] = (tanh(output[0][0].item().toDouble()) * 0.5 + 0.5) * MAX_BW * 2;
         //     float_parameter["redundancy"] = (tanh(output[0][1].item().toDouble()) * 0.5 + 0.5);
 
@@ -277,9 +276,9 @@ void SolutionCcTrigger(CcInfo *cc_infos, uint64_t cc_num, uint64_t *congestion_w
         //     std::cout << e.msg() <<  endl;
         //     std::cerr << "error loading the model\n";
         // }
-        
+
         finish = clock();
-        duration = (double)(finish - start) / CLOCKS_PER_SEC; 
+        duration = (double)(finish - start) / CLOCKS_PER_SEC;
         // cout << "update time cost:" << duration << endl;
 
         your_parameter["interval_pkt_num"] = 0;

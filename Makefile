@@ -1,3 +1,5 @@
+IMAGE_NAME=simonkorl0228/test_image:yg.reno
+
 all: server client
 
 server:
@@ -26,10 +28,10 @@ feature_test: server_interface client
 build_interface: server_interface client
 
 image_build:
-	sudo docker build . -t simonkorl0228/test_image:yg.reno
+	sudo docker build . -t $(IMAGE_NAME)
 
 library: dtp_server/demo/solution.cxx dtp_server/demo/solution.hxx
-	cd dtp_server/demo && g++ -shared -fPIC solution.cxx -I. -o libsolution.so
+	cd dtp_server/demo && g++ -shared -fPIC solution.cxx -I. -o libsolution.so && cp -f libsolution.so ../../aitrans-server/lib
 kill:
 	./aitrans-server/kill_server.sh
 

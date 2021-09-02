@@ -145,7 +145,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     config.set_initial_max_stream_data_bidi_remote(max_stream_data);
     config.set_initial_max_streams_bidi(10000);
     // config.set_redundancy_rate(0.5);
-    config.set_init_cwnd(1_000_000_000);
+    // config.set_init_cwnd(1_000_000_000);
     // config.set_initial_max_streams_uni(10000);
     // config.set_disable_active_migration(true);
 
@@ -189,7 +189,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         // Find the shorter timeout from all the active connections.
         //
         // TODO: use event loop that properly supports timers
-        
+
         let conn_timeout =
             clients.values().filter_map(|(_, c)| c.conn.timeout()).min();
 
@@ -468,11 +468,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                 // Stop sending
                 debug!("Stop sending");
                 client.next_timeout = None;
-                match client.conn.close(false, 0x1, b"send done") {
-                    Ok(()) => continue,
-                    Err(quiche::Error::Done) => continue,
-                    Err(err) => panic!("{:?}", err),
-                }
+                // match client.conn.close(false, 0x1, b"send done") {
+                //     Ok(()) => continue,
+                //     Err(quiche::Error::Done) => continue,
+                //     Err(err) => panic!("{:?}", err),
+                // }
             } else {
                 // Send blocks
                 if client.conn.is_established() {
@@ -485,8 +485,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                             let send_time_gap = block.send_time_gap;
                             let deadline = block.deadline as u64;
                             let priority = block.priority as u64;
-                            let block_size = 
-                                if block.block_size as u64 <= MAX_BLOCK_SIZE as u64{ 
+                            let block_size =
+                                if block.block_size as u64 <= MAX_BLOCK_SIZE as u64{
                                     block.block_size as u64
                                 } else {
                                     MAX_BLOCK_SIZE as u64
@@ -513,12 +513,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                                 // Send the block immediately
                                 continue;
                             }
-                        } 
+                        }
                     }
                 }
             }
         }
-        
+
         // Generate outgoing QUIC packets for all active connections and send
         // them on the UDP socket, until quiche reports that there are no more
         // packets to be sent.
@@ -574,9 +574,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                 let total_time = end_timestamp.unwrap() - start_timestamp.unwrap();
                 let _c_duration =  c.end_time.unwrap() - c.start_time.unwrap();
+
                 eprintln!("total_bytes={}, total_time(us)={}, throughput(B/s)={}", total_bytes, total_time, total_bytes as f64 / (total_time as f64/ 1000.0 / 1000.0));
                 log!(file, display, "total_bytes={}, total_time(us)={}, throughput(B/s)={}\n", total_bytes, total_time, total_bytes as f64 / (total_time as f64/ 1000.0 / 1000.0));
-   
+
                 eprintln!("server stat: {:?}", c.conn.stats());
                 log!(file, display, "server stat: {:?}", c.conn.stats());
             }
@@ -655,13 +656,13 @@ fn send_config(client: &mut Client, configs: &Vec<dtp_config>) -> Result<(), qui
     if client.dtp_config_offset >= configs.len() {
         return Ok(());
     }
-    
+
     for i in client.dtp_config_offset..configs.len() {
         let send_time_gap = configs[i].send_time_gap;
         let deadline = configs[i].deadline as u64;
         let priority = configs[i].priority as u64;
-        let block_size = 
-            if configs[i].block_size as u64 <= MAX_BLOCK_SIZE as u64{ 
+        let block_size =
+            if configs[i].block_size as u64 <= MAX_BLOCK_SIZE as u64{
                 configs[i].block_size as u64
             } else {
                 MAX_BLOCK_SIZE as u64
@@ -697,7 +698,7 @@ fn handle_writable(client: &mut Client, stream_id: u64) {
 
     // if stream_id has been sent
 
-    
+
 }
 
 fn hex_dump(buf: &[u8]) -> String {

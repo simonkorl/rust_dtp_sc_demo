@@ -283,7 +283,6 @@ fn main() {
             debug!("processed {} bytes", read);
         }
 
-
         // // Send an HTTP request as soon as the connection is established.
         // if conn.is_established() && !req_sent {
         //     info!("sending HTTP request for {}", url.path());
@@ -383,8 +382,8 @@ fn main() {
 
         if conn.is_closed() {
             debug!("connection is closed");
-            let s = format!("connection closed, {:?}, total_bytes={}, complete_bytes={}, good_bytes={}, total_time={}\n", 
-                            conn.stats(), 
+            let s = format!("connection closed, {:?}, total_bytes={}, complete_bytes={}, good_bytes={}, total_time={}\n",
+                            conn.stats(),
                             recv_bytes,
                             complete_bytes,
                             good_bytes,
