@@ -2,3 +2,6 @@
 	path = deps/dtp
 	url = git@github.com:STAR-Tsinghua/DTP.git
 	branch = main
+[submodule "evaluate"]
+	path = evaluate
+	url = git@github.com:simonkorl/dtp_test_scripts.git
