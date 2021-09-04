@@ -154,7 +154,7 @@ fn main() {
         .set_application_protos(b"\x05hq-25\x05hq-24\x05hq-23\x08http/0.9")
         .unwrap();
 
-    config.set_max_idle_timeout(5000);
+    config.set_max_idle_timeout(3000);
     config.set_max_packet_size(MAX_DATAGRAM_SIZE as u64);
     config.set_initial_max_data(max_data);
     config.set_initial_max_stream_data_bidi_local(max_stream_data);
@@ -220,7 +220,7 @@ fn main() {
         _ => (),
     }
     let start_timestamp = std::time::Instant::now();
-    loop {
+    'outer: loop {
         poll.poll(&mut events, conn.timeout()).unwrap();
 
         // Read incoming UDP packets from the socket and feed them to quiche,
@@ -283,6 +283,22 @@ fn main() {
             debug!("processed {} bytes", read);
         }
 
+        if conn.is_closed() {
+            debug!("connection is closed");
+            let s = format!("connection closed, {:?}, total_bytes={}, complete_bytes={}, good_bytes={}, total_time={}\n", 
+                    conn.stats(), 
+                    recv_bytes,
+                    complete_bytes,
+                    good_bytes,
+                    start_timestamp.elapsed().as_micros());
+            match file.write_all(s.as_bytes()) {
+                Err(why) => panic!("couldn't write to {}: {}", display, why),
+                _ => (),
+            }
+            // println!("connection closed, {:?}", conn.stats());
+            break;
+        }
+
         // // Send an HTTP request as soon as the connection is established.
         // if conn.is_established() && !req_sent {
         //     info!("sending HTTP request for {}", url.path());
@@ -318,7 +334,7 @@ fn main() {
                     good_bytes += conn.get_good_recv(s) as u64;
 
                     let s = format!(
-                        "{:10}{:10}{:10}{:10}{:10}\n",
+                        "{:10} {:10} {:10} {:10} {:10}\n",
                         s,
                         bct - bct_offset,
                         block_size,
@@ -330,6 +346,20 @@ fn main() {
                             panic!("couldn't write to {}: {}", display, why),
                         _ => (),
                     }
+
+                    debug!("connection is closed");
+                    let s = format!("connection closed, {:?}, total_bytes={}, complete_bytes={}, good_bytes={}, total_time={}\n", 
+                                    conn.stats(), 
+                                    recv_bytes,
+                                    complete_bytes,
+                                    good_bytes,
+                                    start_timestamp.elapsed().as_micros());
+                    debug!("{}", s);
+                    // match file.write_all(s.as_bytes()) {
+                    //     Err(why) => panic!("couldn't write to {}: {}", display, why),
+                    //     _ => (),
+                    // }
+                    // break 'outer;
                 }
 
                 // print!("{}", unsafe {
@@ -381,18 +411,8 @@ fn main() {
         }
 
         if conn.is_closed() {
-            debug!("connection is closed");
-            let s = format!("connection closed, {:?}, total_bytes={}, complete_bytes={}, good_bytes={}, total_time={}\n",
-                            conn.stats(),
-                            recv_bytes,
-                            complete_bytes,
-                            good_bytes,
-                            start_timestamp.elapsed().as_micros());
-            match file.write_all(s.as_bytes()) {
-                Err(why) => panic!("couldn't write to {}: {}", display, why),
-                _ => (),
-            }
-            // println!("connection closed, {:?}", conn.stats());
+            info!("connection closed, {:?}", conn.stats());
+        //     info!("connection closed");
             break;
         }
     }

@@ -1,4 +1,4 @@
-IMAGE_NAME=simonkorl0228/test_image:yg.reno
+IMAGE_NAME=simonkorl0228/test_image:yg.reno.10
 
 all: server client
 

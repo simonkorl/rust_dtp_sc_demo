@@ -40,7 +40,7 @@ Options:
 ";
 
 const MAX_DATAGRAM_SIZE: usize = 1350;
-const TIMEOUT: u64 = 5000;
+const TIMEOUT: u64 = 3000;
 const MAX_BLOCK_SIZE: usize = 1000000;
 static mut DATA_BUF: [u8; MAX_BLOCK_SIZE + 10000] = [0; MAX_BLOCK_SIZE + 10000];
 
@@ -144,11 +144,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     config.set_initial_max_stream_data_bidi_local(max_stream_data);
     config.set_initial_max_stream_data_bidi_remote(max_stream_data);
     config.set_initial_max_streams_bidi(10000);
-    // config.set_redundancy_rate(0.5);
-    // config.set_init_cwnd(1_000_000_000);
+    let rtt = 50f64; // ms
+    let init_cwnd = 4.0f64; // MB
+    config.set_init_cwnd((rtt * 0.001 * init_cwnd * 1024.0 * 1024.0) as u64); // meaning (init_cwnd) MB/s
+    config.set_init_pacing_rate(((rtt * 0.001 * init_cwnd * 1024.0 * 1024.0) / 2.0) as usize); // half of the initial window
     // config.set_initial_max_streams_uni(10000);
-    // config.set_disable_active_migration(true);
+    config.set_disable_active_migration(true);
 
+    // Redundancy setting
+    let tail_pkt_num = 10; // [10, 20] the tail size to add redundancy
+    let tail_size = 1350 * tail_pkt_num; // B
+    let redun_pkt_num = 1; // [1, 2, 5, 10] the number of redundant packets that can be lost
+    let redun_rate: f32 = redun_pkt_num as f32 / tail_pkt_num as f32;
+    config.set_redundancy_rate(redun_rate);
     if std::env::var_os("SSLKEYLOGFILE").is_some() {
         config.log_keys();
     }
@@ -380,7 +388,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 );
 
                 let mut conn = quiche::accept(&scid, odcid, &mut config).unwrap();
-                // conn.set_tail(5000); // ! if you enable redundancy without setting the tail, the program may panic in a unreachable branch
+                conn.set_tail(tail_size); // ! if you enable redundancy without setting the tail, the program may panic in a unreachable branch
                 let client = Client {
                     conn,
                     partial_responses: HashMap::new(),
@@ -467,8 +475,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             if client.dtp_config_offset >= cfgs.len() {
                 // Stop sending
                 debug!("Stop sending");
-                client.next_timeout = None;
-                // match client.conn.close(false, 0x1, b"send done") {
+                // client.next_timeout = None;
+                // match client.conn.close(true, quiche::Error::Done as u32 as u64, b"send done") {
                 //     Ok(()) => continue,
                 //     Err(quiche::Error::Done) => continue,
                 //     Err(err) => panic!("{:?}", err),
@@ -574,7 +582,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                 let total_time = end_timestamp.unwrap() - start_timestamp.unwrap();
                 let _c_duration =  c.end_time.unwrap() - c.start_time.unwrap();
-
                 eprintln!("total_bytes={}, total_time(us)={}, throughput(B/s)={}", total_bytes, total_time, total_bytes as f64 / (total_time as f64/ 1000.0 / 1000.0));
                 log!(file, display, "total_bytes={}, total_time(us)={}, throughput(B/s)={}\n", total_bytes, total_time, total_bytes as f64 / (total_time as f64/ 1000.0 / 1000.0));
 
