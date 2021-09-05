@@ -71,6 +71,13 @@ pub fn u8toi32(v: [u8; 4]) -> i32 {
     }
 }
 
+pub fn i32tou8(i: i32) -> [u8; 4] {
+    unsafe {
+        let i32_ptr: *const i32 = &i as *const i32;
+        let u8_ptr: *const u8 = i32_ptr as *const u8;
+        return [*u8_ptr.offset(0), *u8_ptr.offset(1), *u8_ptr.offset(2), *u8_ptr.offset(3)];
+    }
+}
 fn main() {
     let path = Path::new("client.log");
     let display = path.display();
@@ -229,7 +236,6 @@ fn main() {
         Err(why) => panic!("couldn't write to {}: {}", display, why),
         _ => (),
     }
-
     let start_timestamp = std::time::Instant::now();
     let mut end_timestamp: Option<std::time::Instant> = None;
     let mut block_num = 0;
@@ -301,7 +307,7 @@ fn main() {
             debug!("connection is closed");
             let elapsed = end_timestamp.unwrap() - start_timestamp;
             let s = format!("connection closed, {:?}, total_bytes={}, complete_bytes={}, good_bytes={}, total_time={} ms, good_put={} B/s\n", 
-                    conn.stats(), 
+                    conn.stats(),
                     recv_bytes,
                     complete_bytes,
                     good_bytes,

@@ -20,7 +20,6 @@ uint64_t SolutionAckRatio() {
 }
 
 bool SolutionShouldDropBlock(struct Block *block, double bandwidth, double rtt,uint64_t next_packet_id, uint64_t current_time) {
-    // cerr << "estimated: " << current_time - block->block_create_time + rtt / 2 << "ddl : " << block->block_deadline << endl;
     return current_time - block->block_create_time > block->block_deadline;
 }
 

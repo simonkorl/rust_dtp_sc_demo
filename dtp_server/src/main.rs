@@ -29,6 +29,13 @@ macro_rules! log {
     }
 }
 
+pub fn i32tou8(i: i32) -> [u8; 4] {
+    unsafe {
+        let i32_ptr: *const i32 = &i as *const i32;
+        let u8_ptr: *const u8 = i32_ptr as *const u8;
+        return [*u8_ptr.offset(0), *u8_ptr.offset(1), *u8_ptr.offset(2), *u8_ptr.offset(3)];
+    }
+}
 const USAGE: &str = "Usage:
   server [options] ADDR PORT CONFIG
   server -h | --help
@@ -147,7 +154,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // config.set_redundancy_rate(0.5);
     // config.set_init_cwnd(1_000_000_000u64);
     // config.set_initial_max_streams_uni(10000);
-    // config.set_disable_active_migration(true);
+    config.set_disable_active_migration(true);
 
     if std::env::var_os("SSLKEYLOGFILE").is_some() {
         config.log_keys();
@@ -466,12 +473,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             if client.dtp_config_offset >= cfgs.len() {
                 // Stop sending
                 debug!("Stop sending");
-                client.next_timeout = None;
-                match client.conn.close(true, quiche::Error::Done as u32 as u64, b"send done") {
-                    Ok(()) => continue,
-                    Err(quiche::Error::Done) => continue,
-                    Err(err) => panic!("{:?}", err),
-                }
+                // match client.conn.close(true, quiche::Error::Done as u32 as u64, b"send done") {
+                //     Ok(()) => continue,
+                //     Err(quiche::Error::Done) => continue,
+                //     Err(err) => panic!("{:?}", err),
+                // }
             } else if client.dtp_config_offset == 0 && !sent_block_nums && client.conn.is_established(){
                 debug!("Send block number block");
                 client.next_timeout = None;
@@ -496,8 +502,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                             let send_time_gap = block.send_time_gap;
                             let deadline = block.deadline as u64;
                             let priority = block.priority as u64;
-                            let block_size = 
-                                if block.block_size as u64 <= MAX_BLOCK_SIZE as u64{ 
+                            let block_size =
+                                if block.block_size as u64 <= MAX_BLOCK_SIZE as u64{
                                     block.block_size as u64
                                 } else {
                                     MAX_BLOCK_SIZE as u64
@@ -517,6 +523,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                                 panic!("sent length < block size: {:?}, {:?}", len, block.block_size);
                             }
                             debug!("sent block {}", client.dtp_config_offset);
+
                             total_bytes += len;
                             client.dtp_config_offset += 1;
                             if send_time_gap >= 0.005 {
@@ -527,12 +534,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                                 // Send the block immediately
                                 continue;
                             }
-                        } 
+                        }
                     }
                 }
             }
         }
-        
+
         // Generate outgoing QUIC packets for all active connections and send
         // them on the UDP socket, until quiche reports that there are no more
         // packets to be sent.
@@ -589,7 +596,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 let _c_duration =  c.end_time.unwrap() - c.start_time.unwrap();
                 eprintln!("total_bytes={}, total_time(us)={}, throughput(B/s)={}", total_bytes, total_time, total_bytes as f64 / (total_time as f64/ 1000.0 / 1000.0));
                 log!(file, display, "total_bytes={}, total_time(us)={}, throughput(B/s)={}\n", total_bytes, total_time, total_bytes as f64 / (total_time as f64/ 1000.0 / 1000.0));
-   
                 eprintln!("server stat: {:?}", c.conn.stats());
                 log!(file, display, "server stat: {:?}", c.conn.stats());
             }
@@ -605,6 +611,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     eprintln!("Server stopped normally");
     Ok(())
 }
+
 
 /// Generate a stateless retry token.
 ///
@@ -668,13 +675,13 @@ fn send_config(client: &mut Client, configs: &Vec<dtp_config>) -> Result<(), qui
     if client.dtp_config_offset >= configs.len() {
         return Ok(());
     }
-    
+
     for i in client.dtp_config_offset..configs.len() {
         let send_time_gap = configs[i].send_time_gap;
         let deadline = configs[i].deadline as u64;
         let priority = configs[i].priority as u64;
-        let block_size = 
-            if configs[i].block_size as u64 <= MAX_BLOCK_SIZE as u64{ 
+        let block_size =
+            if configs[i].block_size as u64 <= MAX_BLOCK_SIZE as u64{
                 configs[i].block_size as u64
             } else {
                 MAX_BLOCK_SIZE as u64
@@ -710,7 +717,6 @@ fn handle_writable(client: &mut Client, stream_id: u64) {
 
     // if stream_id has been sent
 
-    
 }
 
 fn hex_dump(buf: &[u8]) -> String {

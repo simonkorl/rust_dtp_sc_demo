@@ -47,11 +47,3 @@ pub fn get_current_usec() -> u64 {
   }
 }
 
-pub fn i32tou8(i: i32) -> [u8; 4] {
-    unsafe {
-        let i32_ptr: *const i32 = &i as *const i32;
-        let u8_ptr: *const u8 = i32_ptr as *const u8;
-        return [*u8_ptr.offset(0), *u8_ptr.offset(1), *u8_ptr.offset(2), *u8_ptr.offset(3)];
-    }
-}
-
