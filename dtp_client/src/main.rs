@@ -362,7 +362,7 @@ fn main() {
                         good_bytes += conn.get_good_recv(s) as u64;
 
                         let s = format!(
-                            "{:10}{:10}{:10}{:10}{:10}\n",
+                            "{:10} {:10} {:10} {:10} {:10}\n",
                             s,
                             bct - bct_offset,
                             block_size,
@@ -379,6 +379,8 @@ fn main() {
                         if block_num == 0 {
                             end_timestamp = Some(std::time::Instant::now());
                         }
+
+                        conn.close(true, 0x1, b"done").ok();
                     }
                 }
 

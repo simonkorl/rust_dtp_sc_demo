@@ -62,6 +62,11 @@ extern "C" {
      * Implement Congestion Control by changing *congestion_window and *pacing_rate
      * */
     void SolutionCcTrigger(CcInfo* cc_infos, uint64_t cc_num, uint64_t *congestion_window, uint64_t *pacing_rate);
+
+  /**
+     EXP ONLY
+   * */
+  void SolutionCc(CcInfo cc_info, uint64_t *congestion_window, uint64_t *pacing_rate);
 }
 
 #endif /* SOLUTION_H_ */

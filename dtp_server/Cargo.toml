@@ -19,6 +19,7 @@ docopt = "1"
 
 [features]
 interface = ["quiche/interface"]
+multi-thread-cc = ["quiche/multi-thread-cc"]
 
 [build-dependencies]
 cmake = "0.1"
