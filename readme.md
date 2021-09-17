@@ -1,4 +1,65 @@
-# WIP: Poster 版本 Rust 测试应用
+# WIP: Poster 版本 Rust 测试应用与脚本
+
+## 新增功能
+
+### test.py
+
+利用脚本进行自动化测试。该脚本会通过 python 运行系统命令从而在本地进行测试（使用 loopback）。**不过目前的脚本每次只能运行一种测试，而且需要手动调节好实验环境，请一定注意！**
+
+该程序从本目录下读取 ./config.json ，并且将运行结果打上时间戳输出在 ./results 目录下
+
+运行的测试程序通过 aitrans\_server 底下的 run\_\* 脚本实现。server 部分的脚本使用了 taskset -c 0
+
+### config.json
+
+test.py 通过读取 config.json 从而实现测试，其结构如下：
+
+```json
+{
+"cmd": "make test", //执行的系统命令。有三个可选值。 "make test" 代表运行 Rust 版本的测试程序，"make feature_test" 代表用 C 接口的同步 CC 测试程序，"make feature_multi_test",代表使用 C 接口的异步 CC 测试程序
+"num": 10, // 运行实验的次数，也就是可以获得的数据的数量
+"branch": "easytrans_full_speed", // 仅作为注释和提醒作用，代表当前使用的 DTP 分支。不同的 DTP 分支可以提供不同的测试能力，具体在下一小节说明。
+"comment": "table 1 group 2 (full speed)" // 注释，提醒作用
+}
+```
+
+### 测试用 DTP 分支
+
+在 AItransDTP 中可以下载到若干个测试用分支，它们分别进行了如下的修改：
+
+1. `poster_cc_period`: 关闭了 scheduler 和 FEC 的 C 接口，使得程序仅使用原始 DTP 的相关实现。（FEC 的值永远设置为 0）
+2. `poster_cc_peroid_trigger`：使用 sleep 的方法，为同步和异步调用提供 period 的方法
+2. `poster_easytrans`：仅关闭了 FEC 的 C 接口从而直接返回 0。会调用 scheduler 的 C 接口函数 SolutionSelectBlock 和 SolutionShouldDropBlock
+3. `poster_easytrans_full_speed`：在 easytrans 分支的基础上将 Reno 的拥塞窗口调整为无穷大。
+
+### 测试用 C 程序说明
+
+这里指的是 `dtp_server/demo/solution.cxx** 程序。这个程序为了实验进行了大量的修改。主要的改动是修改了拥塞控制算法和调度器的实现，使得其可以不再利用 unordered_map 并且可以快速返回。经过测试，这会大幅提升运行速度。
+
+**该 C 程序需要注意检查两点**：
+
+1. 返回的 pacing_rate 是否为无穷大
+2. 返回的 cwnd 是否为无穷大
+
+请根据需要进行修改。
+
+### 测试说明
+
+根据本次 poster 的表格，以前得到数据的运行命令与分支组合见下表：
+
+| 表格说明                     | 运行命令                  | DTP 分支                       |
+| table 1 group 2              | make test                 | poster\_easytrans              |
+| table 1 group 2 (full speed) | make test                 | poster\_easytrans\_full\_speed |
+| table 1 group 3              | make feature\_test        | poster\_easytrans              |
+| table 1 group 3 (full speed) | make feature\_test        | poster\_easytrans              |
+| table 2 group 1              | make feature\_test        | poster\_cc\_period             |
+| table 2 group 2              | make feature\_multi\_test | poster\_cc\_period             |
+| table 2 group 3              | make feature\_test        | poster\_cc\_period\_trigger    |
+| table 2 group 4              | make feature\_multi\_test | poster\_cc\_period\_trigger    |
+
+其中，除了`table 1 group 3`的数据使用了 cwnd 作为 C 拥塞的返回值以外，其他的返回值均为无穷大。
+
+## Deprecated: 原始测试程序说明
 
 警告：该分支的程序**相当**不稳定，客户端与服务端的程序很可能有错误，请谨慎使用。
 

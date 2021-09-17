@@ -14,6 +14,7 @@ const static int time_interval = 2000;
 const static double MAX_BW = 200.0 * 1000 * 1000 * 8;
 const static double MAX_DDL = 0.2;
 const static int BYTES_PER_PACKET = 1500;
+const static uint64_t INFINI = 1000000000000;
 
 uint64_t ssthresh = 0;
 
@@ -95,9 +96,11 @@ void SolutionInit(uint64_t *init_congestion_window, uint64_t *init_pacing_rate)
     your_parameter["current_block_remainning_time"] = 2100000000;
     your_parameter["current_block_remainning_size"] = 0;
 
-    *init_pacing_rate = MAX_BW;
-    *init_congestion_window = 12345678;
+    *init_pacing_rate = INFINI;
+    *init_congestion_window = 1350 * 10;
 
+    // *init_congestion_window = INFIN
+    // I;
 }
 
 uint64_t SolutionSelectBlock(Block* blocks, uint64_t block_num, uint64_t next_packet_id, uint64_t current_time)
@@ -220,8 +223,10 @@ void SolutionCcTrigger(CcInfo *cc_infos, uint64_t cc_num, uint64_t *congestion_w
         // fprintf(stderr,"new cwnd: %lu, ssthresh = %lu\n", cwnd, your_parameter["ssthresh"]);
     }
     // fprintf(stderr,"new cwnd: %lu, ssthresh = %lu\n", cwnd, your_parameter["ssthresh"]);
-    *pacing_rate = 123456789;
+    *pacing_rate = INFINI;
     *congestion_window = cwnd;
+
+    // *congestion_window = INFINI;
     /************** END CODE HERE ***************/
 }
 
@@ -256,7 +261,9 @@ void SolutionCc(CcInfo cc_info, uint64_t *congestion_window, uint64_t *pacing_ra
   }
   // fprintf(stderr,"new cwnd: %lu, ssthresh = %lu\n", cwnd, your_parameter["ssthresh"]);
   // fprintf(stderr,"new cwnd: %lu, ssthresh = %lu\n", cwnd, your_parameter["ssthresh"]);
-  *pacing_rate = 123456789;
+  *pacing_rate = INFINI;
   *congestion_window = cwnd;
+
+  // *congestion_window = INFINI;
   /************** END CODE HERE ***************/
 }

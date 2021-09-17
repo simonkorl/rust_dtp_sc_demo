@@ -152,7 +152,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     config.set_initial_max_stream_data_bidi_remote(max_stream_data);
     config.set_initial_max_streams_bidi(10000);
     // config.set_redundancy_rate(0.5);
-    // config.set_init_cwnd(1_000_000_000u64);
+    // config.set_init_cwnd(1_000_000u64);
     // config.set_init_pacing_rate(5_0000_0000);
     // config.set_initial_max_streams_uni(10000);
     config.set_disable_active_migration(true);

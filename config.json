@@ -1,0 +1,7 @@
+{
+    "cmd": "make test",
+    "branch": "easytrans",
+    "comment": "table 1 group 2 (full speed)",
+    "num": 10
+}
+
