@@ -63,10 +63,15 @@ Options:
 
 fn main() {
     let path = Path::new("client.log");
+    let log_path = Path::new("client.csv");
     let display = path.display();
     // Open a file in write-only mode, returns `io::Result<File>`
     let mut file = match File::create(&path) {
         Err(why) => panic!("couldn't create {}: {}", display, why),
+        Ok(file) => file,
+    };
+    let mut log_file = match File::create(&log_path) {
+        Err(why) => panic!("couldn't create {}: {}", log_path.display(), why),
         Ok(file) => file,
     };
     // let (bct_offset, s) = ntp_offset("ntp1.aliyun.com:123");
@@ -214,8 +219,14 @@ fn main() {
     let mut good_bytes: u64 = 0; // Total bytes of blocks that arrive before deadline
 
     let s =
-        format!("test begin!\n\nBlockID  bct  BlockSize  Priority  Deadline\n");
+        format!("test begin!\n\nblockid\tbct\tsize\tpriority\ndeadline\n");
     match file.write_all(s.as_bytes()) {
+        Err(why) => panic!("couldn't write to {}: {}", display, why),
+        _ => (),
+    }
+    let s = 
+        format!("block_id,bct,size,priority,deadline,duration\n");
+    match log_file.write_all(s.as_bytes()) {
         Err(why) => panic!("couldn't write to {}: {}", display, why),
         _ => (),
     }
@@ -317,7 +328,7 @@ fn main() {
                     complete_bytes += block_size;
                     good_bytes += conn.get_good_recv(s) as u64;
 
-                    let s = format!(
+                    let ls = format!(
                         "{:10}{:10}{:10}{:10}{:10}\n",
                         s,
                         bct - bct_offset,
@@ -325,7 +336,22 @@ fn main() {
                         priority,
                         deadline
                     );
-                    match file.write_all(s.as_bytes()) {
+                    match file.write_all(ls.as_bytes()) {
+                        Err(why) =>
+                            panic!("couldn't write to {}: {}", display, why),
+                        _ => (),
+                    }
+
+                    let ls = format!(
+                        "{},{},{},{},{},{}\n",
+                        s,
+                        bct - bct_offset,
+                        block_size,
+                        priority,
+                        deadline,
+                        start_timestamp.elapsed().as_micros()
+                    );
+                    match log_file.write_all(ls.as_bytes()) {
                         Err(why) =>
                             panic!("couldn't write to {}: {}", display, why),
                         _ => (),

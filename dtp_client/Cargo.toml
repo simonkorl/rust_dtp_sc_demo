@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 log = { version = "0.4", features = ["std"] }
 ring = "0.16"
-quiche = { path = "../deps/dtp", version = "0.2.0"}
+quiche = { path = "../deps/dtp", version = "0.2.0", features=["boringssl-vendored", "fec"]}
 time = "0.1"
 mio = "0.6"
 url = "1"

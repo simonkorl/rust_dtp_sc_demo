@@ -10,7 +10,7 @@ edition = "2018"
 [dependencies]
 mio = { version = "0.7", features = ["os-poll", "net"] }
 dtp_utils = { path = "../dtp_utils" }
-quiche = { path = "../deps/dtp", version = "0.2.0" }
+quiche = { path = "../deps/dtp", version = "0.2.0", features = ["boringssl-vendored", "fec"]}
 log = { version = "0.4", features = ["std"] }
 ring = "0.16"
 time = "0.1"
