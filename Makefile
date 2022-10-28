@@ -11,6 +11,10 @@ server_interface: library
 client:
 	cd dtp_client && cargo build --release
 
+new-client:
+	cd dtp_client_new_tcp && cargo build --release
+	cp -rf dtp_client_new_tcp/target/release/dtp_client_new_tcp aitrans-server/client
+
 test: server client
 	cp -rf dtp_server/target/release/dtp_server aitrans-server/bin/server
 	cp -rf dtp_client/target/release/dtp_client aitrans-server/client

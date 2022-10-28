@@ -5,3 +5,7 @@
 [submodule "evaluate"]
 	path = evaluate
 	url = git@github.com:simonkorl/dtp_test_scripts.git
+[submodule "deps/new-dtp"]
+	path = deps/new-dtp
+	url = http://219.243.215.218:3000/jake/quiche.git
+	branch = dtp
